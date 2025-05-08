@@ -1,6 +1,6 @@
-import React, { useState, useCallback } from "react";
-import { View, Text, Image, TouchableOpacity, Dimensions, StyleSheet, ScrollView } from "react-native"
-import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import React, { useState, useEffect, useRef } from "react";
+import { View, Text, Image, TouchableOpacity, Dimensions, StyleSheet, ScrollView, PanResponder, Animated } from "react-native"
+import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import LinearGradient from "react-native-linear-gradient";
 
@@ -18,6 +18,108 @@ const CaptainJourney = () => {
     const navigation = useNavigation();
     const [captainStep, setCaptainStep] = useState(0);
     const [points, setPoints] = useState(0);
+
+    //game settings
+
+    const gameHeight = height * 0.7;
+    const gameWidth = Dimensions.get('window').width;
+
+    const isOverlapping = (a, b) => {
+        return !(a.x + a.width < b.x || b.x + b.width < a.x || a.y + a.height < b.y || b.y + b.height < a.y);
+    };
+
+    //ship
+
+    const [shipPosition] = useState(new Animated.ValueXY({ x: (gameWidth - 70) / 2, y: gameHeight - 114 }));
+    const shipBasePosition = useRef({ x: (gameWidth - 70) / 2, y: gameHeight - 114 });
+    const shipRef = useRef({ x: (gameWidth - 70) / 2, y: gameHeight - 114 });
+
+    const panResponder = PanResponder.create({
+        onStartShouldSetPanResponder: () => true,
+        onPanResponderGrant: () => {
+            shipBasePosition.current = { x: shipRef.current.x, y: shipRef.current.y };
+        },
+        onPanResponderMove: (e, gestureState) => {
+            let newX = shipBasePosition.current.x + gestureState.dx;
+            let newY = shipBasePosition.current.y + gestureState.dy;
+
+            const shipBox = { x: newX, y: newY, width: 70, height: 114 };
+            const collision = obstacleList.some(ob => isOverlapping(shipBox, ob));
+
+            if (!collision) {
+                newX = Math.max(0, Math.min(newX, gameWidth - 70));
+                newY = Math.max(0, Math.min(newY, gameHeight - 114));
+
+                shipPosition.setValue({ x: newX, y: newY });
+                shipRef.current.x = newX;
+                shipRef.current.y = newY;
+            }
+        },
+    });
+
+    // obstacles
+    const [obstacleList, setObstacleList] = useState([]);
+
+    const spawnObstacle = () => {
+        setObstacleList(currentList => {
+            const existing = [...currentList];
+            if (existing.length >= 5) return existing;
+
+            const obsWidth = 130;
+            const obsHeight = 130;
+            let attempt = 0;
+            const maxAttempts = 20;
+
+            while (existing.length < 5 && attempt < maxAttempts) {
+                const x = Math.floor(Math.random() * (gameWidth - obsWidth));
+                const y = Math.floor(Math.random() * (gameHeight - obsHeight));
+                const candidate = { x, y, width: obsWidth, height: obsHeight };
+                const shipBox = { x: shipRef.current.x, y: shipRef.current.y, width: 70, height: 114 };
+
+                const overlapsShip = isOverlapping(shipBox, candidate);
+                const overlapsOthers = existing.some(o => isOverlapping(o, candidate));
+
+                if (!overlapsShip && !overlapsOthers) {
+                    const id = Date.now() + Math.random();
+                    const obstacle = {
+                        ...candidate,
+                        id,
+                        image: obstacles[Math.floor(Math.random() * obstacles.length)],
+                    };
+
+                    const newList = [...existing, obstacle];
+
+                    setTimeout(() => {
+                        setObstacleList(current => current.filter(o => o.id !== id));
+                    }, 2000 + Math.random() * 2000);
+
+                    return newList;
+                }
+                attempt++;
+            }
+            return existing;
+        });
+    };
+
+    useEffect(() => {
+        const timers = [];
+
+        const loop = () => {
+            const delay = 1000 + Math.random() * 2000;
+            const timerId = setTimeout(() => {
+                spawnObstacle();
+                loop();
+            }, delay);
+            timers.push(timerId);
+        };
+
+        spawnObstacle();
+        loop();
+
+        return () => {
+            timers.forEach(clearTimeout);
+        };
+    }, []);
 
     return (
         <View style={{ flex: 1, alignItems: 'center' }}>
@@ -82,7 +184,33 @@ const CaptainJourney = () => {
                         </View>
 
                         {/* game area */}
-                        <View style={{width: '100%', height: height * 0.7, borderWidth: 2, borderColor: '#BA4603'}}>
+                        <View style={{ width: '100%', height: gameHeight, borderWidth: 2, borderColor: '#BA4603', borderRadius: 22 }}>
+                            
+                            <Animated.Image
+                                {...panResponder.panHandlers}
+                                source={ship}
+                                style={{
+                                    width: 70,
+                                    height: 114,
+                                    position: 'absolute',
+                                    transform: shipPosition.getTranslateTransform()
+                                }}
+                            />
+
+                           {obstacleList.map(ob => (
+                                <Image
+                                    key={ob.id}
+                                    source={ob.image}
+                                    style={{
+                                        position: 'absolute',
+                                        left: ob.x,
+                                        top: ob.y,
+                                        width: ob.width,
+                                        height: ob.height,
+                                        resizeMode: 'contain',
+                                    }}
+                                />
+                            ))}
 
                         </View>
 
