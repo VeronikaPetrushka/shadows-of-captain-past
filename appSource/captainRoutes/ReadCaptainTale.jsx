@@ -85,7 +85,8 @@ const styles = StyleSheet.create({
         height: 21,
         resizeMode: 'contain',
         tintColor: '#E95205',
-        transform: [{ rotate: '180deg' }]
+        transform: [{ rotate: '180deg' }],
+        zIndex: 10
     },
 
     row: {

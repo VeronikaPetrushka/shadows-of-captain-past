@@ -6,6 +6,12 @@ import ReadCaptainTale from "../captainRoutes/ReadCaptainTale";
 import ReadCaptainSubTale from "../captainRoutes/ReadCaptainSubTale";
 import CaptainTaleMap from "../captainRoutes/CaptainTaleMap";
 import CaptainSettings from "../captainRoutes/CaptainSettings";
+import LeadershipQuoutes from "../captainRoutes/LeadershipQuoutes";
+import ReadLeadershipQuoute from "../captainRoutes/ReadLeadershipQuoute";
+import CaptainMirror from "../captainRoutes/CaptainMirror";
+import CaptainMirrorImage from "../captainRoutes/CaptainMirrorImage";
+import CaptainSavedSituations from "../captainRoutes/CaptainSavedSituations";
+import CaptainJourney from "../captainRoutes/CaptainJourney";
 
 export const ShadowsAnimationRoute = () => {
     return (
@@ -52,5 +58,45 @@ export const CaptainTaleMapRoute = ({ route }) => {
 export const CaptainSettingsRoute = () => {
     return (
         <RouteWrapper children={<CaptainSettings />} capitanPanel={true} />
+    )
+};
+
+export const LeadershipQuoutesRoute = () => {
+    return (
+        <RouteWrapper children={<LeadershipQuoutes />} capitanPanel={true} />
+    )
+};
+
+export const ReadLeadershipQuouteRoute = ({ route }) => {
+    const { quoute } = route.params;
+
+    return (
+        <RouteWrapper children={<ReadLeadershipQuoute quoute={quoute} />} />
+    )
+};
+
+export const CaptainMirrorRoute = () => {
+    return (
+        <RouteWrapper children={<CaptainMirror />} capitanPanel={true} />
+    )
+};
+
+export const CaptainMirrorImageRoute = ({ route }) => {
+    const { mirror } = route.params;
+
+    return (
+        <RouteWrapper children={<CaptainMirrorImage mirror={mirror} />} />
+    )
+};
+
+export const CaptainSavedSituationsRoute = () => {
+    return (
+        <RouteWrapper children={<CaptainSavedSituations />} />
+    )
+};
+
+export const CaptainJourneyRoute = () => {
+    return (
+        <RouteWrapper children={<CaptainJourney />} capitanPanel={true} />
     )
 };

@@ -1,6 +1,7 @@
 const leadershipQuoutes = [
     {
         topic: 'Strategy',
+        about: 'Every course is a choice. Every choice is a path',
         quoutes: [
             {
                 quoute: '“Strategy is not just a plan; it is the art of thinking several steps ahead.” — Horatio Nelson',
@@ -18,6 +19,7 @@ const leadershipQuoutes = [
     },
     {
         topic: 'Courage',
+        about: 'To move forward, even when the storm is within',
         quoutes: [
             {
                 quoute: '“Courage is when you keep fighting despite all the fear and obstacles.” — Joan of Arc',
@@ -35,6 +37,7 @@ const leadershipQuoutes = [
     },
     {
         topic: 'Responsibility',
+        about: 'On the captain’s shoulders lie not just masts — but lives',
         quoutes: [
             {
                 quoute: '“Every captain carries the responsibility for his men, even if they don’t always understand his decisions.” — Horatio Nelson',

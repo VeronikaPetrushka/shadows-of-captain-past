@@ -11,7 +11,13 @@ import {
   ReadCaptainTaleRoute,
   ReadCaptainSubTaleRoute,
   CaptainTaleMapRoute,
-  CaptainSettingsRoute
+  CaptainSettingsRoute,
+  LeadershipQuoutesRoute,
+  ReadLeadershipQuouteRoute,
+  CaptainMirrorRoute,
+  CaptainMirrorImageRoute,
+  CaptainSavedSituationsRoute,
+  CaptainJourneyRoute
 } from './appSource/shadowsHelpers/shadowRoutes';
 
 enableScreens();
@@ -59,8 +65,38 @@ const App = () => {
                               component={CaptainSettingsRoute} 
                               options={{ headerShown: false }} 
                         />
+                        <Stack.Screen 
+                              name="LeadershipQuoutesRoute" 
+                              component={LeadershipQuoutesRoute} 
+                              options={{ headerShown: false }} 
+                        />
+                        <Stack.Screen 
+                              name="ReadLeadershipQuouteRoute" 
+                              component={ReadLeadershipQuouteRoute} 
+                              options={{ headerShown: false }} 
+                        />
+                        <Stack.Screen 
+                              name="CaptainMirrorRoute" 
+                              component={CaptainMirrorRoute} 
+                              options={{ headerShown: false }} 
+                        />
+                        <Stack.Screen 
+                              name="CaptainMirrorImageRoute" 
+                              component={CaptainMirrorImageRoute} 
+                              options={{ headerShown: false }} 
+                        />
+                        <Stack.Screen 
+                              name="CaptainSavedSituationsRoute" 
+                              component={CaptainSavedSituationsRoute} 
+                              options={{ headerShown: false }} 
+                        />
+                        <Stack.Screen 
+                              name="CaptainJourneyRoute" 
+                              component={CaptainJourneyRoute} 
+                              options={{ headerShown: false }} 
+                        />
                   </Stack.Navigator>
-                  </NavigationContainer>    
+            </NavigationContainer>    
         </MusicProvider>
     );
 };

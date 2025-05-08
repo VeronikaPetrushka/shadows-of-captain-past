@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Image, TouchableOpacity, Text, StyleSheet, Modal, Alert, ScrollView, Switch } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import LinearGradient from 'react-native-linear-gradient';
 import Slider from '@react-native-community/slider';
 import { useMusic } from '../shadowsHelpers/CaptainMusic.jsx';
 
@@ -56,7 +57,7 @@ const CaptainSettings = () => {
                             maximumValue={1}
                             step={0.01}
                             minimumTrackTintColor="#BA4603"
-                            maximumTrackTintColor="#BA4603"
+                            maximumTrackTintColor="#3E3E3E"
                             thumbTintColor="#FB9301"
                             value={volume}
                             onValueChange={(val) => {
@@ -77,13 +78,23 @@ const CaptainSettings = () => {
                                 source={require('../pastAssets/routeNames/shadowVibration.png')}
                                 style={{ width: 129, height: 40, resizeMode: 'contain' }}
                             />
-                        </View>
+                    </View>
+                    <View>
                         <Switch
                             value={notificationsEnabled}
                             onValueChange={toggleNotifications}
                             trackColor={{ false: '#ccc', true: '#BA4603' }}
                             thumbColor={notificationsEnabled ? '#FB9301' : '#00DE5D'}
                         />
+                        {
+                            notificationsEnabled && (
+                                <Image
+                                    source={require('../pastAssets/routeIcons/onOff.png')}
+                                    style={{ width: 12, height: 12, resizeMode: 'contain', position: 'absolute', left: 6, top: 10, zIndex: 10 }}
+                                />
+                            )
+                        }
+                    </View>
                 </View>
                 
                 <View style={{flexDirection: 'row', alignItems: 'center', alignSelf: 'center', marginTop: 60}}>
@@ -104,16 +115,22 @@ const CaptainSettings = () => {
             >
                 <View style={styles.modalLayout}>
                     <View style={styles.modalContent}>
-                        <Text style={styles.resetTitle}>Reset progress?</Text>
-                        <Text style={styles.resetText}>Are you sure you want to reset your progress?</Text>
-                        <View style={{flexDirection: 'row'}}>
-                            <TouchableOpacity style={[styles.resetBtn, {borderRightColor: '#5d092a', borderRightWidth: 0.4}]} onPress={() => setResetModalVisible(false)}>
-                                <Text style={styles.resetBtnText}>Cancel</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity style={styles.resetBtn} onPress={resetProgress}>
-                                <Text style={[styles.resetBtnText, {fontWeight: '600', color: '#ff0000'}]}>Reset</Text>
-                            </TouchableOpacity>
-                        </View>
+                        <LinearGradient colors={['#BA4603', '#FB9301']} style={{width: '100%', height: '100%', borderRadius: 15}}>
+                            <View style={{ width: '100%', height: '100%', borderRadius: 15, alignItems: 'center', paddingTop: 16 }}>
+                                
+                                <Text style={styles.resetTitle}>Reset progress?</Text>
+                                <Text style={styles.resetText}>Are you sure you want to reset your progress?</Text>
+                                <View style={{flexDirection: 'row'}}>
+                                    <TouchableOpacity style={[styles.resetBtn, {borderRightColor: '#fff', borderRightWidth: 1}]} onPress={() => setResetModalVisible(false)}>
+                                        <Text style={styles.resetBtnText}>Cancel</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity style={styles.resetBtn} onPress={resetProgress}>
+                                        <Text style={[styles.resetBtnText, {fontWeight: '600', color: '#B71304'}]}>Reset</Text>
+                                    </TouchableOpacity>
+                                </View>
+
+                            </View>
+                        </LinearGradient>
                     </View>
                 </View>
             </Modal>
@@ -151,17 +168,17 @@ const styles = StyleSheet.create({
 
     modalContent: {
         width: 273,
+        height: 146,
         borderRadius: 15,
-        backgroundColor: '#ff9e36',
-        alignItems: 'center',
-        paddingTop: 16
+        borderWidth: 1,
+        borderColor: '#fff'
     },
 
     resetTitle: {
         fontSize: 17,
         lineHeight: 22,
         fontWeight: '600',
-        color: '#5d092a',
+        color: '#fff',
         marginBottom: 2,
         width: '80%',
         textAlign: 'center'
@@ -171,16 +188,16 @@ const styles = StyleSheet.create({
         fontSize: 13,
         lineHeight: 18,
         fontWeight: '500',
-        color: '#5d092a',
+        color: '#fff',
         marginBottom: 16,
-        width: '80%',
+        width: '85%',
         textAlign: 'center'
     },
 
     resetBtn: {
         width: '50%',
-        borderTopColor: '#5d092a',
-        borderTopWidth: 0.4,
+        borderTopColor: '#fff',
+        borderTopWidth: 1,
         padding: 16,
         alignItems: 'center',
         justifyContent: 'center'
@@ -190,7 +207,7 @@ const styles = StyleSheet.create({
         fontSize: 17,
         lineHeight: 22,
         fontWeight: '500',
-        color: '#5d092a',
+        color: '#fff',
     }
   
 });

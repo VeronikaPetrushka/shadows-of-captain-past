@@ -1,10 +1,11 @@
-import { View, Text, Image, TouchableOpacity, Dimensions, StyleSheet, ScrollView } from "react-native"
+import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView } from "react-native"
+import LinearGradient from "react-native-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
+import { useState } from "react";
 
-const { height } = Dimensions.get('window');
-
-const ReadCaptainSubTale = ({ tale, name }) => {
+const ReadLeadershipQuoute = ({ quoute }) => {
     const navigation = useNavigation();
+    const [expandedQuote, setExpandedQuote] = useState(false);
 
     return (
         <View style={{ flex: 1, alignItems: 'center' }}>
@@ -16,17 +17,25 @@ const ReadCaptainSubTale = ({ tale, name }) => {
                         style={styles.backButton}
                     />
                 </TouchableOpacity>
-                <Text style={styles.taleName}>{name}</Text>
-                <View style={{ width: 27, height: 21 }} />
+                <Text style={[styles.quouteName, {width: '90%', textAlign: 'center'}]}>Quote from great captains</Text>
             </View>
 
-            <Image source={tale.image} style={styles.mainTaleImage} />
+            <View style={styles.row}>
+                <Text style={[styles.quouteName, {textAlign: 'left'}]}>Quote</Text>
+                <TouchableOpacity onPress={() => setExpandedQuote((prev) => !prev)}>
+                    <Image
+                        source={require('../pastAssets/routeIcons/readMore.png')}
+                        style={[{width: 23, height: 11, resizeMode: 'contain'}, expandedQuote && {transform: [{ rotate: '180deg' }]}]}
+                    />
+                </TouchableOpacity>
+            </View>
 
             <ScrollView style={{width: '100%'}}>
+                <Text style={styles.taleText}>{quoute.quoute}</Text>
                 {
-                    tale.tale.map((taleText, idx) => (
-                        <Text key={idx} style={styles.taleText}>{taleText}</Text>
-                    ))
+                    expandedQuote && (
+                        <Text style={styles.taleText}>{quoute.expandedQuoute}</Text>
+                    )
                 }
             </ScrollView>
             
@@ -36,14 +45,12 @@ const ReadCaptainSubTale = ({ tale, name }) => {
 
 const styles = StyleSheet.create({
 
-    taleName: {
+    quouteName: {
         fontSize: 26,
         lineHeight: 28,
         fontWeight: '400',
         fontStyle: 'italic',
         color: '#fff',
-        width: '70%',
-        textAlign: 'center'
     },
 
     backButton: {
@@ -64,20 +71,14 @@ const styles = StyleSheet.create({
     },
 
     taleText: {
-        fontSize: 16,
-        fontWeight: '400',
+        fontSize: 15,
+        fontWeight: '300',
+        fontStyle: 'italic',
         color: '#fff',
         lineHeight: 21,
         marginBottom: 20
     },
 
-    mainTaleImage: {
-        width: '100%',
-        height: 235,
-        resizeMode: 'contain',
-        marginBottom: 20
-    },
-
 })
 
-export default ReadCaptainSubTale;
+export default ReadLeadershipQuoute;

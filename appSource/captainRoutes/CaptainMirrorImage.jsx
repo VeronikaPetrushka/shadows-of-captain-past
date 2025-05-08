@@ -1,9 +1,7 @@
-import { View, Text, Image, TouchableOpacity, Dimensions, StyleSheet, ScrollView } from "react-native"
+import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native"
 import { useNavigation } from "@react-navigation/native";
 
-const { height } = Dimensions.get('window');
-
-const ReadCaptainSubTale = ({ tale, name }) => {
+const CaptainMirrorImage = ({ mirror }) => {
     const navigation = useNavigation();
 
     return (
@@ -16,27 +14,20 @@ const ReadCaptainSubTale = ({ tale, name }) => {
                         style={styles.backButton}
                     />
                 </TouchableOpacity>
-                <Text style={styles.taleName}>{name}</Text>
-                <View style={{ width: 27, height: 21 }} />
+                <Text style={styles.mirrorTopic}>{mirror.topic}</Text>
+                <View style={{width: 27, height: 21}} />
             </View>
 
-            <Image source={tale.image} style={styles.mainTaleImage} />
+                
+            <Image source={mirror.image} style={styles.mirrorImage} />
 
-            <ScrollView style={{width: '100%'}}>
-                {
-                    tale.tale.map((taleText, idx) => (
-                        <Text key={idx} style={styles.taleText}>{taleText}</Text>
-                    ))
-                }
-            </ScrollView>
-            
         </View>
     )
 };
 
 const styles = StyleSheet.create({
 
-    taleName: {
+    mirrorTopic: {
         fontSize: 26,
         lineHeight: 28,
         fontWeight: '400',
@@ -63,21 +54,12 @@ const styles = StyleSheet.create({
         marginBottom: 41
     },
 
-    taleText: {
-        fontSize: 16,
-        fontWeight: '400',
-        color: '#fff',
-        lineHeight: 21,
-        marginBottom: 20
-    },
-
-    mainTaleImage: {
-        width: '100%',
-        height: 235,
+    mirrorImage: {
+        width: 353,
+        height: 207,
         resizeMode: 'contain',
-        marginBottom: 20
-    },
+    }
 
 })
 
-export default ReadCaptainSubTale;
+export default CaptainMirrorImage;
