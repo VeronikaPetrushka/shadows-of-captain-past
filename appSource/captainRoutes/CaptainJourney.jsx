@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
-import { View, Text, Image, TouchableOpacity, Dimensions, StyleSheet, ScrollView, PanResponder, Animated } from "react-native"
+import React, { useState, useEffect, useRef, useMemo } from "react";
+import { View, Text, Image, TouchableOpacity, Dimensions, StyleSheet, ScrollView, PanResponder, Animated, Modal, Alert } from "react-native"
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import LinearGradient from "react-native-linear-gradient";
@@ -7,7 +7,7 @@ import LinearGradient from "react-native-linear-gradient";
 const { height } = Dimensions.get('window');
 
 const ship = require('../pastAssets/captainJourney/ship.png');
-const point = require('../pastAssets/captainJourney/point.png');
+const captainPoint = require('../pastAssets/captainJourney/point.png');
 const obstacles = [
     require('../pastAssets/captainJourney/obstacles/crash.png'),
     require('../pastAssets/captainJourney/obstacles/island.png'),
@@ -18,11 +18,25 @@ const CaptainJourney = () => {
     const navigation = useNavigation();
     const [captainStep, setCaptainStep] = useState(0);
     const [points, setPoints] = useState(0);
+    const [gameOver, setGameOver] = useState(false);
+    const [gameActive, setGameActive] = useState(true);
 
     //game settings
 
     const gameHeight = height * 0.7;
     const gameWidth = Dimensions.get('window').width;
+
+    const [shipPosition] = useState(new Animated.ValueXY({ x: (gameWidth - 70) / 2, y: gameHeight - 114 }));
+    const shipBasePosition = useRef({ x: (gameWidth - 70) / 2, y: gameHeight - 114 });
+    const shipRef = useRef({ x: (gameWidth - 70) / 2, y: gameHeight - 114 });
+
+    const [obstacleList, setObstacleList] = useState([]);
+    const obstacleRef = useRef([]);
+    obstacleRef.current = obstacleList;
+
+    const [pointList, setPointList] = useState([]);
+    const pointRef = useRef([]);
+    pointRef.current = pointList;
 
     const isOverlapping = (a, b) => {
         return !(a.x + a.width < b.x || b.x + b.width < a.x || a.y + a.height < b.y || b.y + b.height < a.y);
@@ -30,37 +44,47 @@ const CaptainJourney = () => {
 
     //ship
 
-    const [shipPosition] = useState(new Animated.ValueXY({ x: (gameWidth - 70) / 2, y: gameHeight - 114 }));
-    const shipBasePosition = useRef({ x: (gameWidth - 70) / 2, y: gameHeight - 114 });
-    const shipRef = useRef({ x: (gameWidth - 70) / 2, y: gameHeight - 114 });
-
-    const panResponder = PanResponder.create({
+    const panResponder = useMemo(() => PanResponder.create({
         onStartShouldSetPanResponder: () => true,
         onPanResponderGrant: () => {
+            if (!gameActive) return;
             shipBasePosition.current = { x: shipRef.current.x, y: shipRef.current.y };
         },
         onPanResponderMove: (e, gestureState) => {
+            if (!gameActive) return;
+
             let newX = shipBasePosition.current.x + gestureState.dx;
             let newY = shipBasePosition.current.y + gestureState.dy;
 
             const shipBox = { x: newX, y: newY, width: 70, height: 114 };
-            const collision = obstacleList.some(ob => isOverlapping(shipBox, ob));
+            const collision = obstacleRef.current.some(ob => isOverlapping(shipBox, ob));
 
-            if (!collision) {
-                newX = Math.max(0, Math.min(newX, gameWidth - 70));
-                newY = Math.max(0, Math.min(newY, gameHeight - 114));
-
-                shipPosition.setValue({ x: newX, y: newY });
-                shipRef.current.x = newX;
-                shipRef.current.y = newY;
+            if (collision) {
+                handleGameOver();
+                return;
             }
+
+            newX = Math.max(0, Math.min(newX, gameWidth - 70));
+            newY = Math.max(0, Math.min(newY, gameHeight - 114));
+
+            shipPosition.setValue({ x: newX, y: newY });
+            shipRef.current.x = newX;
+            shipRef.current.y = newY;
+
+            setPointList(prev => {
+                const remaining = prev.filter(p => !isOverlapping(shipBox, p));
+                const collected = prev.length - remaining.length;
+                if (collected > 0) setPoints(pt => pt + collected);
+                return remaining;
+            });
         },
-    });
+    }), [gameActive]);
 
     // obstacles
-    const [obstacleList, setObstacleList] = useState([]);
 
     const spawnObstacle = () => {
+        if (!gameActive) return;
+
         setObstacleList(currentList => {
             const existing = [...currentList];
             if (existing.length >= 5) return existing;
@@ -102,8 +126,9 @@ const CaptainJourney = () => {
     };
 
     useEffect(() => {
-        const timers = [];
+        if (!gameActive) return;
 
+        const timers = [];
         const loop = () => {
             const delay = 1000 + Math.random() * 2000;
             const timerId = setTimeout(() => {
@@ -116,10 +141,94 @@ const CaptainJourney = () => {
         spawnObstacle();
         loop();
 
-        return () => {
-            timers.forEach(clearTimeout);
+        return () => timers.forEach(clearTimeout);
+    }, [gameActive]);
+
+    // points 
+
+    const spawnPoint = () => {
+        if (!gameActive) return;
+
+        setPointList(currentList => {
+            const existing = [...currentList];
+            if (existing.length >= 4) return existing;
+
+            const ptSize = 38;
+            let attempt = 0;
+            const maxAttempts = 20;
+
+            while (existing.length < 4 && attempt < maxAttempts) {
+                const x = Math.floor(Math.random() * (gameWidth - ptSize));
+                const y = Math.floor(Math.random() * (gameHeight - ptSize));
+                const candidate = { x, y, width: ptSize, height: ptSize };
+
+                const overlapsObstacle = obstacleRef.current.some(o => isOverlapping(o, candidate));
+                const overlapsOthers = existing.some(p => isOverlapping(p, candidate));
+
+                if (!overlapsObstacle && !overlapsOthers) {
+                    const id = Date.now() + Math.random();
+                    const point = { ...candidate, id };
+                    const newList = [...existing, point];
+
+                    setTimeout(() => {
+                        setPointList(current => current.filter(p => p.id !== id));
+                    }, 2000 + Math.random() * 2000);
+
+                    return newList;
+                }
+                attempt++;
+            }
+            return existing;
+        });
+    };
+
+    useEffect(() => {
+        if (!gameActive) return;
+
+        const loop = () => {
+            const delay = 2000 + Math.random() * 2000;
+            setTimeout(() => {
+                spawnPoint();
+                loop();
+            }, delay);
         };
-    }, []);
+        loop();
+    }, [gameActive]);
+
+    // Reset game
+    const resetGame = () => {
+        setGameOver(false);
+        setGameActive(true);
+        setPoints(0);
+        setObstacleList([]);
+        setPointList([]);
+        
+        shipPosition.setValue({ x: (gameWidth - 70) / 2, y: gameHeight - 114 });
+        shipRef.current = { x: (gameWidth - 70) / 2, y: gameHeight - 114 };
+        shipBasePosition.current = { x: (gameWidth - 70) / 2, y: gameHeight - 114 };
+    };
+
+    const savePoints = async () => {
+        try {
+            const storedPoints = await AsyncStorage.getItem('CAPTAIN_JOURNEY_POINTS');
+            const currentPoints = storedPoints ? parseInt(storedPoints) : 0;
+            await AsyncStorage.setItem('CAPTAIN_JOURNEY_POINTS', (currentPoints + points).toString());
+        } catch (error) {
+            Alert.alert('Error', 'Error saving points:');
+        }
+    };
+
+    useEffect(() => {
+        if (gameOver) {
+            savePoints();
+        }
+    }, [gameOver]);
+
+    // Handle game over
+    const handleGameOver = () => {
+        setGameActive(false);
+        setGameOver(true);
+    };
 
     return (
         <View style={{ flex: 1, alignItems: 'center' }}>
@@ -127,7 +236,7 @@ const CaptainJourney = () => {
             {
                 captainStep === 0 && (
                     <View style={[styles.row, {marginBottom: 24}]}>
-                        <TouchableOpacity onPress={() => navigation.navigate('CaptainJourneyShop')}>
+                        <TouchableOpacity onPress={() => navigation.navigate('CaptainJourneyShopRoute')}>
                             <Image
                                 source={require('../pastAssets/routeIcons/captainShop.png')}
                                 style={{ width: 22, height: 20, resizeMode: 'contain' }}
@@ -177,7 +286,7 @@ const CaptainJourney = () => {
                         
                         <View style={{ flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-end', marginBottom: height * 0.05 }}>
                             <Image
-                                source={point}
+                                source={captainPoint}
                                 style={{ width: 25, height: 25, resizeMode: 'contain', marginRight: 10 }}
                             />
                             <Text style={styles.points}>{points}</Text>
@@ -210,6 +319,14 @@ const CaptainJourney = () => {
                                         resizeMode: 'contain',
                                     }}
                                 />
+                           ))}
+                            
+                            {pointList.map(p => (
+                                <Image
+                                    key={p.id}
+                                    source={captainPoint}
+                                    style={{ position: 'absolute', left: p.x, top: p.y, width: 38, height: 38, resizeMode: 'contain' }}
+                                />
                             ))}
 
                         </View>
@@ -218,6 +335,39 @@ const CaptainJourney = () => {
                 )
             }
 
+            <Modal
+                visible={gameOver}
+                transparent={true}
+                animationType="fade"
+            >
+                <View style={styles.modalContainer}>
+
+                    <View style={styles.gradient}>
+                        <LinearGradient colors={['#BA4603', '#FB9301']} style={styles.gradient}>
+
+                            <View style={styles.modalContent}>
+                                <Image
+                                    source={require('../pastAssets/captainJourney/gameOverTitle.png')}
+                                    style={{ width: '100%', height: 117, resizeMode: 'contain', marginBottom: 13 }}
+                                />
+                                <Image
+                                    source={require('../pastAssets/captainJourney/gameOverShip.png')}
+                                    style={{ width: '100%', height: 291, resizeMode: 'contain' }}
+                                />
+                            </View>
+
+                        </LinearGradient>
+                    </View>
+
+                    <View style={{flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-end', marginTop: 20, marginRight: 20}}>
+                        <Text style={styles.tryAgainText}>Try again</Text>
+                        <TouchableOpacity onPress={resetGame}>
+                            <Image source={require('../pastAssets/appDecor/nextBtn.png')} style={{width: 60, height: 60, resizeMode: 'contain'}} />
+                        </TouchableOpacity>
+                    </View>
+
+                </View>
+            </Modal>
             
         </View>
     )
@@ -246,8 +396,41 @@ const styles = StyleSheet.create({
         fontStyle: 'italic',
         color: '#BA4603',
         lineHeight: 26,
-    }
+    },
 
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+
+    gradient: {
+        width: '95%',
+        height: 492,
+        borderRadius: 32,
+        alignSelf: 'center'
+    },
+
+    modalContent: {
+        paddingVertical: 18,
+        paddingHorizontal: 20,
+        borderRadius: 32,
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        width: '100%',
+    },
+    
+    tryAgainText: {
+        fontSize: 28,
+        lineHeight: 30,
+        fontWeight: '400',
+        color: '#fff',
+        marginRight: 12,
+        width: 120,
+        textAlign: 'center',
+        fontStyle: 'italic'
+    }
 })
 
 export default CaptainJourney;

@@ -17,7 +17,9 @@ import {
   CaptainMirrorRoute,
   CaptainMirrorImageRoute,
   CaptainSavedSituationsRoute,
-  CaptainJourneyRoute
+  CaptainJourneyRoute,
+  CaptainJourneyShopRoute,
+  ReadCaptainJourneyStoryRoute
 } from './appSource/shadowsHelpers/shadowRoutes';
 
 enableScreens();
@@ -93,6 +95,16 @@ const App = () => {
                         <Stack.Screen 
                               name="CaptainJourneyRoute" 
                               component={CaptainJourneyRoute} 
+                              options={{ headerShown: false }} 
+                        />
+                        <Stack.Screen 
+                              name="CaptainJourneyShopRoute" 
+                              component={CaptainJourneyShopRoute} 
+                              options={{ headerShown: false }} 
+                        />
+                        <Stack.Screen 
+                              name="ReadCaptainJourneyStoryRoute" 
+                              component={ReadCaptainJourneyStoryRoute} 
                               options={{ headerShown: false }} 
                         />
                   </Stack.Navigator>

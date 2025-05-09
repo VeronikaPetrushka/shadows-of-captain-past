@@ -17,7 +17,7 @@ export const MusicProvider = ({ children }) => {
 
         await TrackPlayer.add({
           id: '1',
-          url: require('../pastAssets/captainMusic.mp3'),
+          url: require('../pastAssets/captainMusic2.mp3'),
           title: 'Shadow of Captain Past Music',
         });
 

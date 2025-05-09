@@ -1,5 +1,3 @@
-//styles modal + unify logic + music
-
 import React, { useState, useEffect } from 'react';
 import { View, Image, TouchableOpacity, Text, StyleSheet, Modal, Alert, ScrollView, Switch } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -8,29 +6,34 @@ import Slider from '@react-native-community/slider';
 import { useMusic } from '../shadowsHelpers/CaptainMusic.jsx';
 
 const CaptainSettings = () => {
-    const [resetModalVisible, setResetModalVisible] = useState(false);
+    const [captainResetVisible, setCaptainResetVisible] = useState(false);
     const { isPlaying, togglePlay, volume, setVolume } = useMusic();
-    const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+    const [captainNotify, setCaptainNotify] = useState(false);
 
     useEffect(() => {
         const loadNotificationSetting = async () => {
             const stored = await AsyncStorage.getItem('CAPTAIN_NOTIFICATIONS');
-            if (stored !== null) setNotificationsEnabled(JSON.parse(stored));
+            if (stored !== null) setCaptainNotify(JSON.parse(stored));
         };
         loadNotificationSetting();
     }, []);
 
     const toggleNotifications = async () => {
-        const newValue = !notificationsEnabled;
-        setNotificationsEnabled(newValue);
+        const newValue = !captainNotify;
+        setCaptainNotify(newValue);
         await AsyncStorage.setItem('CAPTAIN_NOTIFICATIONS', JSON.stringify(newValue));
     };
 
     const resetProgress = () => {
+        AsyncStorage.removeItem('CAPTAIN_NOTIFICATIONS')
         AsyncStorage.removeItem('PINNED_CAPTAIN_TALES')
+        AsyncStorage.removeItem('CAPTAIN_SAVED_MIRRORS')
+        AsyncStorage.removeItem('UNLOCKED_CAPTAIN_JOURNEYS')
+        AsyncStorage.removeItem('CAPTAIN_JOURNEY_POINTS')
+                        
             .then(() => console.log('Progress reset successfully'))
             .catch((error) => Alert.alert('Failed to reset progress:'));
-        setResetModalVisible(false);
+        setCaptainResetVisible(false);
         Alert.alert('Success', 'Your progress has been reset!')
     };
 
@@ -81,13 +84,13 @@ const CaptainSettings = () => {
                     </View>
                     <View>
                         <Switch
-                            value={notificationsEnabled}
+                            value={captainNotify}
                             onValueChange={toggleNotifications}
                             trackColor={{ false: '#ccc', true: '#BA4603' }}
-                            thumbColor={notificationsEnabled ? '#FB9301' : '#00DE5D'}
+                            thumbColor={captainNotify ? '#FB9301' : '#00DE5D'}
                         />
                         {
-                            notificationsEnabled && (
+                            captainNotify && (
                                 <Image
                                     source={require('../pastAssets/routeIcons/onOff.png')}
                                     style={{ width: 12, height: 12, resizeMode: 'contain', position: 'absolute', left: 6, top: 10, zIndex: 10 }}
@@ -99,7 +102,7 @@ const CaptainSettings = () => {
                 
                 <View style={{flexDirection: 'row', alignItems: 'center', alignSelf: 'center', marginTop: 60}}>
                     <Text style={styles.resetProgress} numberOfLines={2}>Reset Progress</Text>
-                    <TouchableOpacity onPress={() => setResetModalVisible(true)}>
+                    <TouchableOpacity onPress={() => setCaptainResetVisible(true)}>
                         <Image source={require('../pastAssets/appDecor/nextBtn.png')} style={{width: 60, height: 60, resizeMode: 'contain'}} />
                     </TouchableOpacity>
                 </View>
@@ -110,8 +113,8 @@ const CaptainSettings = () => {
             <Modal
                 animationType="fade"
                 transparent
-                visible={resetModalVisible}
-                onRequestClose={() => setResetModalVisible(false)}
+                visible={captainResetVisible}
+                onRequestClose={() => setCaptainResetVisible(false)}
             >
                 <View style={styles.modalLayout}>
                     <View style={styles.modalContent}>
@@ -121,7 +124,7 @@ const CaptainSettings = () => {
                                 <Text style={styles.resetTitle}>Reset progress?</Text>
                                 <Text style={styles.resetText}>Are you sure you want to reset your progress?</Text>
                                 <View style={{flexDirection: 'row'}}>
-                                    <TouchableOpacity style={[styles.resetBtn, {borderRightColor: '#fff', borderRightWidth: 1}]} onPress={() => setResetModalVisible(false)}>
+                                    <TouchableOpacity style={[styles.resetBtn, {borderRightColor: '#fff', borderRightWidth: 1}]} onPress={() => setCaptainResetVisible(false)}>
                                         <Text style={styles.resetBtnText}>Cancel</Text>
                                     </TouchableOpacity>
                                     <TouchableOpacity style={styles.resetBtn} onPress={resetProgress}>

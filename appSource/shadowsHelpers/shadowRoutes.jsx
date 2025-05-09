@@ -12,6 +12,8 @@ import CaptainMirror from "../captainRoutes/CaptainMirror";
 import CaptainMirrorImage from "../captainRoutes/CaptainMirrorImage";
 import CaptainSavedSituations from "../captainRoutes/CaptainSavedSituations";
 import CaptainJourney from "../captainRoutes/CaptainJourney";
+import CaptainJourneyShop from "../captainRoutes/CaptainJourneyShop";
+import ReadCaptainJourneyStory from "../captainRoutes/ReadCaptainJourneyStory";
 
 export const ShadowsAnimationRoute = () => {
     return (
@@ -98,5 +100,19 @@ export const CaptainSavedSituationsRoute = () => {
 export const CaptainJourneyRoute = () => {
     return (
         <RouteWrapper children={<CaptainJourney />} capitanPanel={true} />
+    )
+};
+
+export const CaptainJourneyShopRoute = () => {
+    return (
+        <RouteWrapper children={<CaptainJourneyShop />} />
+    )
+};
+
+export const ReadCaptainJourneyStoryRoute = ({ route }) => {
+    const { item } = route.params;
+
+    return (
+        <RouteWrapper children={<ReadCaptainJourneyStory item={item} />} />
     )
 };
